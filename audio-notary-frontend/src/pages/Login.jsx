@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { ScanContext } from '../context/ScanContext'; // <--- Import ScanContext
-import api from '../api';
+import { ScanContext } from '../context/ScanContext'; 
+import api from '../api'; // <--- USING CENTRAL API
 import { toast } from 'react-toastify';
 
 const Login = () => {
@@ -11,15 +11,13 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const { login, user } = useContext(AuthContext);
-  const { resetScan } = useContext(ScanContext); // <--- Get Reset Function
+  const { resetScan } = useContext(ScanContext);
   const navigate = useNavigate();
 
-  // 1. Wipe old data immediately when this page loads
   useEffect(() => {
     resetScan(); 
   }, []);
 
-  // 2. Redirect if already logged in
   useEffect(() => {
     if (user || localStorage.getItem('token')) {
         navigate('/scan');
@@ -32,7 +30,9 @@ const Login = () => {
       const endpoint = isRegister ? 'register' : 'login';
       const payload = isRegister ? { email, password, username } : { email, password };
       
-      const res = await axios.post(`/auth/${endpoint}`, payload);
+      // FIXED: Uses api.post (handles URL and headers automatically)
+      const res = await api.post(`/auth/${endpoint}`, payload);
+      
       login({ email, username: res.data.username, user_type: res.data.user_type }, res.data.access_token);
       toast.success(`Welcome back, ${res.data.username}!`);
       navigate('/scan'); 
@@ -43,7 +43,7 @@ const Login = () => {
 
   const handleGuest = async () => {
     try {
-        const res = await axios.post('/auth/guest-login');
+        const res = await api.post('/auth/guest-login');
         login({ email: "guest", username: "Guest User", user_type: "guest" }, res.data.access_token);
         toast.info("Logged in as Guest Mode");
         navigate('/scan'); 
@@ -53,12 +53,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen pt-32 flex items-center justify-center relative overflow-hidden">
-      
-      {/* NEW BRIGHT ANIMATED BACKGROUND */}
+    // FIXED: Changed pt-32 to pt-40 to prevent header overlap
+    <div className="min-h-screen pt-40 flex items-center justify-center relative overflow-hidden">
       <div className="bright-login-bg"></div>
-      
-      {/* Animated Orbs */}
       <div className="orb orb-1"></div>
       <div className="orb orb-2"></div>
 

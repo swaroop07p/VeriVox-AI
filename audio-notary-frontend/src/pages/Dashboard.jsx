@@ -1,10 +1,9 @@
 import { useEffect, useState, useContext } from 'react';
-import api from '../api';
+import api from '../api'; // <--- USING CENTRAL API
 import { AuthContext } from '../context/AuthContext';
 import { FaFileAudio, FaDownload, FaRobot, FaUser, FaTrash, FaExclamationCircle, FaHistory } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-// Reusable Background Component
 const Background = () => (
     <>
       <div className="aurora-bg"></div>
@@ -16,16 +15,15 @@ const Background = () => (
 );
 
 const Dashboard = () => {
-  const { user, token } = useContext(AuthContext);
+  const { user } = useContext(AuthContext); // Token is handled by api.js now
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get('/api/history', {
-         headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
-      });
+      // FIXED: Uses api.get (No manual headers needed)
+      const res = await api.get('/api/history');
       setHistory(res.data);
     } catch (err) {
       console.error("Failed to fetch history", err);
@@ -43,9 +41,8 @@ const Dashboard = () => {
 
   const handleDownload = async (reportId, filename) => {
     try {
-        const response = await axios.get(`/api/report/${reportId}/download`, {
+        const response = await api.get(`/api/report/${reportId}/download`, {
             responseType: 'blob',
-            headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
@@ -62,9 +59,7 @@ const Dashboard = () => {
   const confirmDelete = async () => {
     if (!deleteId) return;
     try {
-        await axios.delete(`/api/report/${deleteId}`, {
-            headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
-        });
+        await api.delete(`/api/report/${deleteId}`);
         toast.success("Record deleted permanently.");
         fetchHistory(); 
     } catch (error) {
@@ -88,10 +83,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pt-32 px-4 pb-20 relative overflow-hidden">
-      {/* BACKGROUND ADDED */}
       <Background />
-      
-      {/* Dark overlay for readability */}
       <div className="absolute top-0 left-0 w-full h-full z-[2] bg-gradient-to-b from-transparent via-black/20 to-black/60 pointer-events-none"></div>
 
       <div className="max-w-6xl mx-auto relative z-10">
@@ -159,7 +151,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
                     <FaExclamationCircle className="text-red-500"/> Confirm Deletion
                 </h3>
-                <p className="text-gray-300 mb-6">Are you sure you want to permanently delete this forensic report? This action cannot be undone.</p>
+                <p className="text-gray-300 mb-6">Are you sure you want to permanently delete this forensic report?</p>
                 <div className="flex justify-end gap-3">
                     <button onClick={() => setDeleteId(null)} className="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Cancel</button>
                     <button onClick={confirmDelete} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-bold transition">Yes, Delete it</button>

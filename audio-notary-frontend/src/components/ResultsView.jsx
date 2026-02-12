@@ -1,6 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { FaFilePdf, FaExclamationTriangle, FaUserSecret, FaRedo } from 'react-icons/fa';
-// import axios from 'axios';
 import api from '../api';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
@@ -8,18 +7,15 @@ import { ScanContext } from '../context/ScanContext';
 import { toast } from 'react-toastify';
 
 const ResultsView = ({ result }) => {
-  const { user, token } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { resetScan } = useContext(ScanContext);
 
   const isFake = result.verdict === "AI/Synthetic";
-  const fakeScore = result.confidence_score; // Backend sends Fake %
+  // The backend sends "confidence_score" as the FAKE probability (0-100)
+  const fakeScore = result.confidence_score;
   const humanScore = 100 - fakeScore;
 
-  // --- LOGIC FIX: Always show the WINNING percentage ---
-  const displayScore = isFake ? fakeScore : humanScore;
-  const displayLabel = isFake ? "AI CONFIDENCE" : "HUMAN CONFIDENCE";
-
-  // Pie Data (Green = Human, Red = AI)
+  // Pie Data
   const pieData = [
     { name: 'Real Human', value: humanScore },
     { name: 'AI Synthetic', value: fakeScore },
@@ -36,9 +32,8 @@ const ResultsView = ({ result }) => {
         return;
     }
     try {
-        const response = await axios.get(`/api/report/${result._id}/download`, {
+        const response = await api.get(`/api/report/${result._id}/download`, {
             responseType: 'blob',
-            headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
@@ -62,7 +57,9 @@ const ResultsView = ({ result }) => {
           <span>{isFake ? "SYNTHETIC AUDIO DETECTED" : "VERIFIED HUMAN VOICE"}</span>
         </h1>
         <p className="text-gray-300 font-mono text-lg md:text-xl">
-            {displayLabel}: <span className={`font-bold ${isFake ? 'text-neon-red' : 'text-neon-green'}`}>{displayScore.toFixed(2)}%</span>
+           Confidence: <span className={`font-bold ${isFake ? 'text-neon-red' : 'text-neon-green'}`}>
+             {isFake ? fakeScore.toFixed(2) : humanScore.toFixed(2)}%
+           </span>
         </p>
       </div>
 
@@ -93,12 +90,12 @@ const ResultsView = ({ result }) => {
                         <Tooltip contentStyle={{backgroundColor: '#0a0a0a', borderColor: '#333', borderRadius: '8px'}} />
                     </PieChart>
                 </ResponsiveContainer>
-                {/* Center Text shows the WINNING SCORE */}
+                {/* Center Text shows the dominant score */}
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                     <span className={`block text-3xl font-bold ${isFake ? 'text-neon-red' : 'text-neon-green'}`}>
-                        {displayScore.toFixed(0)}%
+                        {isFake ? fakeScore.toFixed(0) : humanScore.toFixed(0)}%
                     </span>
-                    <span className="text-xs text-gray-400 whitespace-nowrap">{isFake ? 'AI PROBABILITY' : 'HUMAN PROBABILITY'}</span>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">{isFake ? 'AI' : 'HUMAN'}</span>
                 </div>
             </div>
             <div className="flex justify-center gap-6 mt-6 text-sm font-bold">
@@ -113,12 +110,17 @@ const ResultsView = ({ result }) => {
                 <FaExclamationTriangle/> Forensic Insights
             </h3>
             <ul className="space-y-4">
-                {result.reasons.map((reason, idx) => (
+                {result.reasons.length > 0 ? result.reasons.map((reason, idx) => (
                     <li key={idx} className="flex items-start gap-3 bg-white/5 p-4 rounded-xl border-l-4 border-neon-blue hover:bg-white/10 transition">
                         <span className="mt-1 text-neon-blue text-lg">➤</span>
                         <p className="text-sm md:text-base text-gray-200 leading-relaxed">{reason}</p>
                     </li>
-                ))}
+                )) : (
+                    <li className="flex items-start gap-3 bg-white/5 p-4 rounded-xl border-l-4 border-green-500">
+                        <span className="mt-1 text-green-500 text-lg">✔</span>
+                        <p className="text-sm md:text-base text-gray-200 leading-relaxed">No anomalies detected. Audio passed all forensic checks.</p>
+                    </li>
+                )}
             </ul>
         </div>
       </div>
