@@ -1,6 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { FaFilePdf, FaExclamationTriangle, FaUserSecret, FaRedo } from 'react-icons/fa';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../api';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ScanContext } from '../context/ScanContext';
@@ -35,7 +36,7 @@ const ResultsView = ({ result }) => {
         return;
     }
     try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/report/${result._id}/download`, {
+        const response = await axios.get(`/api/report/${result._id}/download`, {
             responseType: 'blob',
             headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
         });

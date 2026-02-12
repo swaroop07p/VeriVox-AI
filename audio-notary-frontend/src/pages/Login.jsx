@@ -43,7 +43,7 @@ const Login = () => {
 
   const handleGuest = async () => {
     try {
-        const res = await axios.post('http://127.0.0.1:8000/auth/guest-login');
+        const res = await axios.post('/auth/guest-login');
         login({ email: "guest", username: "Guest User", user_type: "guest" }, res.data.access_token);
         toast.info("Logged in as Guest Mode");
         navigate('/scan'); 
