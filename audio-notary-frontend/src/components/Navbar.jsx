@@ -16,10 +16,17 @@ const Navbar = () => {
   };
 
   const handleLogoClick = () => {
+    // Check if we are already on the homepage
+    if (window.location.pathname === '/scan') {
+      window.location.reload();
+      return; // Exit the function so it doesn't try to navigate
+    }
+  
+    // Your existing logic
     if (user) {
-        navigate('/scan');
+      navigate('/scan');
     } else {
-        navigate('/'); 
+      navigate('/');
     }
   };
 
