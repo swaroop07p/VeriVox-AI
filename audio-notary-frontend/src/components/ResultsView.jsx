@@ -14,7 +14,6 @@ const ResultsView = ({ result }) => {
   const fakeScore = result.confidence_score;
   const humanScore = 100 - fakeScore;
 
-  // Decide what to show (The winning score)
   const displayScore = isFake ? fakeScore : humanScore;
   const displayLabel = isFake ? "AI Probability" : "Human Probability";
 
@@ -24,11 +23,11 @@ const ResultsView = ({ result }) => {
   ];
   const COLORS = ['#00ff9d', '#ff0055'];
 
-  // --- CUSTOM TOOLTIP FIX ---
+  // --- FIXED TOOLTIP BACKGROUND ---
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-emerald/90 border border-white/20 p-4 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md">
+        <div className="relative z-10 bg-blue-900/90 border border-white/20 p-4 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <p className="text-white font-bold mb-1">{payload[0].name}</p>
           <p className="text-gray-300">
             Confidence: <span style={{ color: payload[0].payload.fill, fontWeight: 'bold' }}>

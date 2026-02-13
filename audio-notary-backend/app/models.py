@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
 
 class UserCreate(BaseModel):
     username: str
@@ -13,9 +12,5 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    user_type: str  # "user" or "guest"
+    user_type: str  
     username: str
-
-class AudioAnalysisRequest(BaseModel):
-    filename: str
-    # Frontend will send file, this model is for response structure mainly
