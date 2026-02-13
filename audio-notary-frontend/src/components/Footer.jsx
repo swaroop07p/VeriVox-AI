@@ -8,9 +8,9 @@ const Footer = () => {
         
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <FaWaveSquare className="text-purple-400 text-2xl" />
-          <span className="text-xl font-bold tracking-widest text-white">
-            AUDIO<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue">NOTARY</span>
+          <FaWaveSquare className="text-purple-500 text-3xl" />
+          <span className="text-2xl font-bold tracking-widest text-white">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue">VeriVox</span>
           </span>
         </div>
 
