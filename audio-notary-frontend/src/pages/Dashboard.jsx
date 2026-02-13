@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import api from '../api'; // Import API
+import api from '../api'; 
 import { AuthContext } from '../context/AuthContext';
 import { FaFileAudio, FaDownload, FaRobot, FaUser, FaTrash, FaExclamationCircle, FaHistory } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -97,15 +97,15 @@ const Dashboard = () => {
         ) : (
             <div className="space-y-4">
             {history.map((item) => {
-                // --- LOGIC FIX START ---
-                // 1. Determine if this record is Fake or Human
+                // --- BUG FIX FOR OLD HISTORY REPORTS ---
                 const isFake = item.verdict === 'AI/Synthetic';
+                let displayScore = isFake ? item.confidence_score : (100 - item.confidence_score);
                 
-                // 2. Calculate the "Winning" Percentage
-                // If it is AI, use the score directly (e.g., 99%)
-                // If it is Human, flip it (100 - 1% Fake = 99% Human)
-                const displayScore = isFake ? item.confidence_score : (100 - item.confidence_score);
-                // --- LOGIC FIX END ---
+                // Ensure display score is > 50% for the winning verdict
+                if (displayScore < 50) {
+                     displayScore = 100 - displayScore;
+                }
+                // ---------------------------------------
 
                 return (
                     <div key={item._id} className="glass-panel p-4 rounded-xl flex flex-col md:flex-row items-center gap-4 hover:bg-white/10 transition border border-white/5">
@@ -129,7 +129,6 @@ const Dashboard = () => {
                             {isFake ? 'AI Generated' : 'Real Human'} 
                             </span>
                         </div>
-                        {/* 3. Display the Corrected Score with matching colors */}
                         <span className={`px-2 py-1 rounded text-xs font-mono ml-3 border font-bold ${isFake ? 'bg-red-900/20 text-red-300 border-red-500/30' : 'bg-green-900/20 text-green-300 border-green-500/30'}`}>
                             {displayScore.toFixed(1)}%
                         </span>

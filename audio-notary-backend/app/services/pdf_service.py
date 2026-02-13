@@ -26,8 +26,19 @@ def generate_pdf_report(analysis_data):
 
     # --- VERDICT LOGIC ---
     verdict = analysis_data.get("verdict", "Unknown")
-    fake_prob = analysis_data.get("confidence_score", 0) # This is Fake %
+    
+    # --- BUG FIX FOR OLD HISTORY REPORTS ---
+    fake_prob = analysis_data.get("confidence_score", 0) 
     human_prob = 100 - fake_prob
+    
+    # Ensure the graph matches the verdict logically
+    if verdict == "Real Human" and fake_prob > human_prob:
+        fake_prob = 100 - analysis_data.get("confidence_score", 0)
+        human_prob = analysis_data.get("confidence_score", 0)
+    elif verdict == "AI/Synthetic" and human_prob > fake_prob:
+        fake_prob = 100 - analysis_data.get("confidence_score", 0)
+        human_prob = analysis_data.get("confidence_score", 0)
+    # ---------------------------------------
     
     # Determine Colors
     if verdict == "AI/Synthetic":

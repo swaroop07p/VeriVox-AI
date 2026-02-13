@@ -76,11 +76,11 @@ const Login = () => {
         <div className="flex justify-center mb-6">
             <div className="p-4 rounded-full bg-white/5 border border-white/20 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
                 {/* ICON SWAP: Using FaUserPlus for Registration now */}
-                {isRegister ? <FaUserPlus className="text-4xl text-neon-blue" /> : <FaSignInAlt className="text-4xl text-purple-400" />}
+                {isRegister ? <FaUserPlus className="text-4xl text-neon-blue" /> : <FaSignInAlt className="text-4xl text-neon-blue" />}
             </div>
         </div>
 
-        <h2 className="text-3xl font-black text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 tracking-wide">
+        <h2 className="text-3xl font-black text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue tracking-wide">
           {isRegister ? "Create Account" : "Access Portal"}
         </h2>
 

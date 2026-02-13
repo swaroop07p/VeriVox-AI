@@ -11,8 +11,19 @@ const ResultsView = ({ result }) => {
   const { resetScan } = useContext(ScanContext);
 
   const isFake = result.verdict === "AI/Synthetic";
-  const fakeScore = result.confidence_score;
-  const humanScore = 100 - fakeScore;
+  
+  // --- BUG FIX FOR OLD HISTORY REPORTS ---
+  let fakeScore = result.confidence_score;
+  let humanScore = 100 - fakeScore;
+
+  if (!isFake && fakeScore > humanScore) {
+      fakeScore = 100 - result.confidence_score;
+      humanScore = result.confidence_score;
+  } else if (isFake && humanScore > fakeScore) {
+      fakeScore = 100 - result.confidence_score;
+      humanScore = result.confidence_score;
+  }
+  // ---------------------------------------
 
   const displayScore = isFake ? fakeScore : humanScore;
   const displayLabel = isFake ? "AI Probability" : "Human Probability";
@@ -23,7 +34,6 @@ const ResultsView = ({ result }) => {
   ];
   const COLORS = ['#00ff9d', '#ff0055'];
 
-  // --- FIXED TOOLTIP BACKGROUND ---
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (

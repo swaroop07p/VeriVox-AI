@@ -127,6 +127,27 @@ async def analyze_audio_forensics(file_upload, filename: str):
         else:
             verdict = "Real Human" if human_confidence > final_fake_prob else "AI/Synthetic"
 
+        # --- BUG FIX: NORMALIZE SCORES ---
+        total_score = final_fake_prob + human_confidence
+        if total_score > 0:
+            normalized_fake = (final_fake_prob / total_score) * 100
+            normalized_human = (human_confidence / total_score) * 100
+        else:
+            normalized_fake = 50.0
+            normalized_human = 50.0
+
+        # Guarantee visual consistency: the winning verdict MUST be >= 50%
+        if verdict == "Real Human" and normalized_fake >= 50:
+            normalized_fake = 49.9
+            normalized_human = 50.1
+        elif verdict == "AI/Synthetic" and normalized_human >= 50:
+            normalized_human = 49.9
+            normalized_fake = 50.1
+
+        final_fake_prob = normalized_fake
+        human_confidence = normalized_human
+        # ----------------------------------
+
         reasons = []
         if verdict == "AI/Synthetic":
             if scores["pitch_jitter"] > 60: reasons.append("Robotic pitch smoothness detected.")
