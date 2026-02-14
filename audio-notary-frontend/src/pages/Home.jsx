@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import ScannerOverlay from "../components/ScannerOverlay";
 import ResultsView from "../components/ResultsView";
 import Hero from "../components/Hero";
-import api from '../api'; // Central API
+import api from '../api'; 
 import {
   FaCloudUploadAlt,
   FaMicrophoneAlt,
@@ -34,7 +34,6 @@ const Home = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState("");
 
-  // Scroll to results when they appear
   useEffect(() => {
     if (scanResult && resultsRef.current) {
         setTimeout(() => {
@@ -46,18 +45,16 @@ const Home = () => {
   const onDrop = useCallback((acceptedFiles) => {
     setFile(acceptedFiles[0]);
     setError("");
-    // Clear previous results when a new file is dropped
     setScanResult(null); 
   }, [setScanResult]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "audio/*": [] },
+    accept: { "audio/*": [] }, // Accepts all mobile and desktop audio formats
     maxFiles: 1,
   });
 
   const handleAnalyze = async () => {
-    // 1. Check Login
     if (!localStorage.getItem("token") && !user) {
       alert("You must be logged in to scan files.");
       navigate("/");
@@ -66,25 +63,23 @@ const Home = () => {
 
     if (!file) return;
 
-    // 2. Start Animation
     setIsScanning(true);
     setError("");
-    setScanResult(null); // Ensure result is clear before starting
+    setScanResult(null); 
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      // 3. Send Request
-      console.log("Sending request to backend..."); // Debug Log
-      const response = await api.post("/api/detect", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-      });
+      console.log("Sending request to backend..."); 
+      
+      // --- THE CRITICAL MOBILE BUG FIX ---
+      // We REMOVED the manual { headers: {"Content-Type": "..."} } 
+      // Axios will now automatically generate the correct boundary headers for mobile!
+      const response = await api.post("/api/detect", formData);
 
-      console.log("Response received:", response.data); // Debug Log
+      console.log("Response received:", response.data); 
 
-      // 4. Stop Animation & Show Result
-      // We wait 2 seconds just for the 'cool' animation effect, then show data
       setTimeout(() => {
         setScanResult(response.data);
         setIsScanning(false);
@@ -93,7 +88,7 @@ const Home = () => {
 
     } catch (err) {
       console.error("Analysis Failed:", err);
-      setIsScanning(false); // STOP ANIMATION ON ERROR
+      setIsScanning(false); 
       
       if (err.response) {
         if (err.response.status === 401) {
@@ -113,10 +108,7 @@ const Home = () => {
     }
   };
 
-  // This handles the "ScannerOverlay" telling us it's done visually
   const handleAnimationComplete = () => {
-    // Only stop if we actually have a result or error. 
-    // If backend is still thinking, keep scanning!
     if (scanResult || error) {
       setIsScanning(false);
     }
@@ -136,7 +128,6 @@ const Home = () => {
   return (
     <div className="min-h-[100dvh] pt-24 pb-10 px-4 flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* Pass scanResult so Overlay knows when to finish */}
       <ScannerOverlay
         isScanning={isScanning}
         onComplete={handleAnimationComplete}
@@ -174,7 +165,7 @@ const Home = () => {
                     Drag & Drop Audio File
                   </p>
                   <p className="text-xs md:text-sm text-gray-500">
-                    or click to browse (WAV, MP3, FLAC)
+                    Tap here to upload from phone
                   </p>
                 </div>
               )}
@@ -183,7 +174,7 @@ const Home = () => {
             {file && (
               <button
                 onClick={handleAnalyze}
-                disabled={isScanning} // Disable button while scanning
+                disabled={isScanning} 
                 className={`w-full mt-6 py-4 rounded-xl font-bold text-lg tracking-wider flex justify-center items-center gap-2 transition shadow-lg
                     ${isScanning ? 'bg-gray-700 cursor-not-allowed text-gray-400' : 'bg-gradient-to-r from-neon-blue to-purple-600 hover:opacity-90 shadow-blue-500/30'}
                 `}
