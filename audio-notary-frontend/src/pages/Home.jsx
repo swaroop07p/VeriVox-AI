@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import ScannerOverlay from "../components/ScannerOverlay";
 import ResultsView from "../components/ResultsView";
 import Hero from "../components/Hero";
+import api from '../api'; // We are back to using your perfect API setup!
 import {
   FaCloudUploadAlt,
   FaMicrophoneAlt,
@@ -58,8 +59,7 @@ const Home = () => {
   });
 
   const handleAnalyze = async () => {
-    const token = localStorage.getItem("token");
-    if (!token && !user) {
+    if (!localStorage.getItem("token") && !user) {
       alert("You must be logged in to scan files.");
       navigate("/");
       return;
@@ -71,35 +71,29 @@ const Home = () => {
     setError("");
     setScanResult(null); 
 
-    const formData = new FormData();
-    // MOBILE FILE BUG FIX: Force a filename if the mobile browser strips it
-    formData.append("file", file, file.name || "mobile_audio_upload.wav");
-
     try {
-      console.log("Sending request to backend via NATIVE FETCH..."); 
+      console.log("Step 1: Forcing mobile file into RAM (ArrayBuffer)..."); 
       
-      // --- THE MASTER MOBILE FIX: NATIVE FETCH ---
-      // Bypassing Axios completely for the file upload to prevent the XHR Network Error.
-      const response = await fetch("https://swaroop07p-audio-notary-backend.hf.space/api/detect", {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${token}`
-            // Do NOT add Content-Type. Fetch automatically creates the correct multipart boundary.
-        },
-        body: formData
-      });
+      // --- THE ULTIMATE MOBILE OVERRIDE ---
+      // 1. Read the file completely into the phone's RAM to prevent the OS from locking it.
+      const fileBuffer = await file.arrayBuffer();
+      
+      // 2. Re-package it as an invincible Blob
+      const safeBlob = new Blob([fileBuffer], { type: file.type || 'audio/wav' });
 
-      if (!response.ok) {
-          // If the server rejects it, we catch the EXACT error now, instead of a vague network error
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || `Server Error: ${response.status}`);
-      }
+      // 3. Append the safe RAM-Blob to FormData
+      const formData = new FormData();
+      formData.append("file", safeBlob, file.name || "mobile_audio_upload.wav");
 
-      const data = await response.json();
-      console.log("Response received:", data); 
+      console.log("Step 2: Sending secure payload to backend..."); 
+      
+      // We use your api.js which handles the URL and Tokens perfectly!
+      const response = await api.post("/api/detect", formData);
+
+      console.log("Response received:", response.data); 
 
       setTimeout(() => {
-        setScanResult(data);
+        setScanResult(response.data);
         setIsScanning(false);
         setFile(null);
       }, 2000);
@@ -108,16 +102,20 @@ const Home = () => {
       console.error("Analysis Failed:", err);
       setIsScanning(false); 
       
-      if (err.message.includes("401")) {
-          setError("Session expired. Please login again.");
-          localStorage.clear();
-          navigate('/');
-      } else if (err.message.includes("413")) {
-          setError("File is too large for the server.");
-      } else if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
-          setError("Connection blocked. Please ensure you are on a stable Wi-Fi network.");
+      if (err.response) {
+        if (err.response.status === 401) {
+            setError("Session expired. Please login again.");
+            localStorage.clear();
+            navigate('/');
+        } else if (err.response.status === 413) {
+            setError("File is too large.");
+        } else {
+            setError("Server Error: " + (err.response.data.detail || "Unknown"));
+        }
+      } else if (err.code === "ERR_NETWORK" || err.message === "Network Error") {
+        setError("Network connection lost during upload. File may be too large for mobile data.");
       } else {
-          setError(err.message || "Analysis failed. Please try a different file.");
+        setError("Analysis failed. Please try a different file.");
       }
     }
   };
