@@ -1,8 +1,8 @@
 # Use updated official Python 3.11 lightweight image
 FROM python:3.11-slim
 
-# Install system dependencies required for audio processing (librosa/soundfile)
-RUN apt-get update && apt-get install -y libsndfile1 && rm -rf /var/lib/apt/lists/*
+# Install system dependencies required for audio processing (Added ffmpeg for mobile codecs!)
+RUN apt-get update && apt-get install -y libsndfile1 ffmpeg && rm -rf /var/lib/apt/lists/*
 
 # Set up a new user (Required by Hugging Face for security)
 RUN useradd -m -u 1000 user

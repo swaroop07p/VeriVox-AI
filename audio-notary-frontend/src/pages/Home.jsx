@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import ScannerOverlay from "../components/ScannerOverlay";
 import ResultsView from "../components/ResultsView";
 import Hero from "../components/Hero";
-import api from '../api'; 
+import api from '../api'; // Central API
 import {
   FaCloudUploadAlt,
   FaMicrophoneAlt,
@@ -43,14 +43,19 @@ const Home = () => {
   }, [scanResult]);
 
   const onDrop = useCallback((acceptedFiles) => {
-    setFile(acceptedFiles[0]);
-    setError("");
-    setScanResult(null); 
+    if (acceptedFiles?.length > 0) {
+        setFile(acceptedFiles[0]);
+        setError("");
+        setScanResult(null); 
+    }
   }, [setScanResult]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "audio/*": [] }, // Accepts all mobile and desktop audio formats
+    // Expanded accept list to ensure iOS/Android compatibility
+    accept: { 
+        "audio/*": [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"] 
+    },
     maxFiles: 1,
   });
 
@@ -73,9 +78,9 @@ const Home = () => {
     try {
       console.log("Sending request to backend..."); 
       
-      // --- THE CRITICAL MOBILE BUG FIX ---
-      // We REMOVED the manual { headers: {"Content-Type": "..."} } 
-      // Axios will now automatically generate the correct boundary headers for mobile!
+      // --- CRITICAL MOBILE FIX: NO MANUAL HEADERS ---
+      // We removed the manual Content-Type header so the mobile browser can 
+      // dynamically set the boundary token for the multipart form!
       const response = await api.post("/api/detect", formData);
 
       console.log("Response received:", response.data); 
@@ -162,10 +167,10 @@ const Home = () => {
                 <div className="text-center space-y-4 p-4">
                   <FaCloudUploadAlt className="text-5xl md:text-6xl text-gray-500 mx-auto group-hover:text-neon-blue transition-colors" />
                   <p className="text-base md:text-lg text-gray-300">
-                    Drag & Drop Audio File
+                    Tap here to upload Audio
                   </p>
                   <p className="text-xs md:text-sm text-gray-500">
-                    Tap here to upload from phone
+                    Supported: WAV, MP3, M4A, AAC
                   </p>
                 </div>
               )}
