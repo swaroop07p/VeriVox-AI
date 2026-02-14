@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import ScannerOverlay from "../components/ScannerOverlay";
 import ResultsView from "../components/ResultsView";
 import Hero from "../components/Hero";
-import api from '../api'; // Central API
 import {
   FaCloudUploadAlt,
   FaMicrophoneAlt,
@@ -52,7 +51,6 @@ const Home = () => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    // Expanded accept list to ensure iOS/Android compatibility
     accept: { 
         "audio/*": [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"] 
     },
@@ -60,7 +58,8 @@ const Home = () => {
   });
 
   const handleAnalyze = async () => {
-    if (!localStorage.getItem("token") && !user) {
+    const token = localStorage.getItem("token");
+    if (!token && !user) {
       alert("You must be logged in to scan files.");
       navigate("/");
       return;
@@ -73,20 +72,34 @@ const Home = () => {
     setScanResult(null); 
 
     const formData = new FormData();
-    formData.append("file", file);
+    // MOBILE FILE BUG FIX: Force a filename if the mobile browser strips it
+    formData.append("file", file, file.name || "mobile_audio_upload.wav");
 
     try {
-      console.log("Sending request to backend..."); 
+      console.log("Sending request to backend via NATIVE FETCH..."); 
       
-      // --- CRITICAL MOBILE FIX: NO MANUAL HEADERS ---
-      // We removed the manual Content-Type header so the mobile browser can 
-      // dynamically set the boundary token for the multipart form!
-      const response = await api.post("/api/detect", formData);
+      // --- THE MASTER MOBILE FIX: NATIVE FETCH ---
+      // Bypassing Axios completely for the file upload to prevent the XHR Network Error.
+      const response = await fetch("https://swaroop07p-audio-notary-backend.hf.space/api/detect", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`
+            // Do NOT add Content-Type. Fetch automatically creates the correct multipart boundary.
+        },
+        body: formData
+      });
 
-      console.log("Response received:", response.data); 
+      if (!response.ok) {
+          // If the server rejects it, we catch the EXACT error now, instead of a vague network error
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `Server Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Response received:", data); 
 
       setTimeout(() => {
-        setScanResult(response.data);
+        setScanResult(data);
         setIsScanning(false);
         setFile(null);
       }, 2000);
@@ -95,20 +108,16 @@ const Home = () => {
       console.error("Analysis Failed:", err);
       setIsScanning(false); 
       
-      if (err.response) {
-        if (err.response.status === 401) {
-            setError("Session expired. Please login again.");
-            localStorage.clear();
-            navigate('/');
-        } else if (err.response.status === 413) {
-            setError("File is too large.");
-        } else {
-            setError("Server Error: " + (err.response.data.detail || "Unknown"));
-        }
-      } else if (err.code === "ERR_NETWORK") {
-        setError("Cannot connect to server. Is the backend running?");
+      if (err.message.includes("401")) {
+          setError("Session expired. Please login again.");
+          localStorage.clear();
+          navigate('/');
+      } else if (err.message.includes("413")) {
+          setError("File is too large for the server.");
+      } else if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
+          setError("Connection blocked. Please ensure you are on a stable Wi-Fi network.");
       } else {
-        setError("Analysis failed. Please try a different file.");
+          setError(err.message || "Analysis failed. Please try a different file.");
       }
     }
   };
@@ -157,7 +166,7 @@ const Home = () => {
                 <div className="text-center p-4">
                   <FaMicrophoneAlt className="text-4xl md:text-5xl text-neon-green mb-4 mx-auto animate-bounce" />
                   <p className="text-lg md:text-xl font-bold text-white break-all">
-                    {file.name}
+                    {file.name || "Audio File Selected"}
                   </p>
                   <p className="text-sm text-gray-400 mt-2">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
