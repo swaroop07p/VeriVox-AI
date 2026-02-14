@@ -3,6 +3,7 @@ import numpy as np
 import os
 import scipy.stats
 import logging
+import uuid # <--- NEW IMPORT for safe filenames
 
 # Set up logging to see errors in Render console
 logging.basicConfig(level=logging.INFO)
@@ -36,30 +37,38 @@ def calculate_human_alignment(value, baseline_mean, baseline_std):
 def calculate_cepstral_peak(y, sr):
     try:
         S = np.abs(librosa.stft(y))
+        # Log of zero protection
         cepstrum = np.fft.ifft(np.log(S + 1e-6), axis=0).real
         quefrency_axis = np.fft.fftfreq(cepstrum.shape[0], d=1/sr)
         valid_mask = (quefrency_axis > 0.002) & (quefrency_axis < 0.015)
+        if not np.any(valid_mask):
+             return 0
         peak_val = np.max(np.abs(cepstrum[valid_mask, :]))
         return peak_val * 1000
     except:
         return 0
 
 async def analyze_audio_forensics(file_upload, filename: str):
-    temp_filename = f"temp_{filename}"
+    # 1. UUID Filenames: Sanitize mobile filenames (e.g. "Recording 1.m4a") to avoid Linux crashes
+    ext = os.path.splitext(filename)[1]
+    if not ext: ext = ".tmp"
+    safe_filename = f"temp_{uuid.uuid4().hex}{ext}"
     
     try:
         content = await file_upload.read()
-        with open(temp_filename, "wb") as f:
+        with open(safe_filename, "wb") as f:
             f.write(content)
 
-        # Load Audio
-        y, sr = librosa.load(temp_filename, sr=None, duration=45)
+        # 2. PERFORMANCE FIX: Force sr=22050
+        # Mobile files are 48kHz. Loading them at native rate crashes the CPU on free tier.
+        # 22050Hz is industry standard for speech forensics and runs 3x faster.
+        y, sr = librosa.load(safe_filename, sr=22050, duration=45)
         y = librosa.util.normalize(y)
 
         # --- FEATURE EXTRACTION ---
+        # pyin is very heavy; running it at 22050Hz instead of 48000Hz saves the server.
         f0, _, _ = librosa.pyin(y, fmin=60, fmax=500)
         
-        # Handle empty pitch (silence/noise)
         pitch_jitter = 0.0
         if f0 is not None:
             f0 = f0[~np.isnan(f0)]
@@ -119,7 +128,7 @@ async def analyze_audio_forensics(file_upload, filename: str):
 
         final_fake_prob = min(max(final_fake_prob, 2), 98)
 
-        # Verdict
+        # Verdict Logic
         if final_fake_prob > 70 and human_confidence < 50:
             verdict = "AI/Synthetic"
         elif final_fake_prob < 45 and human_confidence > 55:
@@ -127,7 +136,7 @@ async def analyze_audio_forensics(file_upload, filename: str):
         else:
             verdict = "Real Human" if human_confidence > final_fake_prob else "AI/Synthetic"
 
-        # --- BUG FIX: NORMALIZE SCORES ---
+        # --- NORMALIZE SCORES (Fixes the % Mismatch) ---
         total_score = final_fake_prob + human_confidence
         if total_score > 0:
             normalized_fake = (final_fake_prob / total_score) * 100
@@ -136,7 +145,7 @@ async def analyze_audio_forensics(file_upload, filename: str):
             normalized_fake = 50.0
             normalized_human = 50.0
 
-        # Guarantee visual consistency: the winning verdict MUST be >= 50%
+        # Guarantee consistency: The verdict winner MUST have > 50%
         if verdict == "Real Human" and normalized_fake >= 50:
             normalized_fake = 49.9
             normalized_human = 50.1
@@ -144,23 +153,11 @@ async def analyze_audio_forensics(file_upload, filename: str):
             normalized_human = 49.9
             normalized_fake = 50.1
 
-        final_fake_prob = normalized_fake
-        human_confidence = normalized_human
-        # ----------------------------------
-
-        reasons = []
-        if verdict == "AI/Synthetic":
-            if scores["pitch_jitter"] > 60: reasons.append("Robotic pitch smoothness detected.")
-            if scores["cepstral_peak"] > 60: reasons.append("Synthetic harmonic structure.")
-            if scores["mfcc_consistency"] > 60: reasons.append("Static vocal texture.")
-        else:
-            reasons = ["Natural micro pitch instability.", "Biological harmonic structure."]
-
         return {
             "verdict": verdict,
-            "confidence_score": float(round(final_fake_prob, 2)),
-            "human_alignment_score": float(round(human_confidence, 2)),
-            "reasons": reasons,
+            "confidence_score": float(round(normalized_fake, 2)), # Always return Fake %
+            "human_alignment_score": float(round(normalized_human, 2)),
+            "reasons": ["Robotic pitch smoothness." if scores["pitch_jitter"] > 60 else "Natural biological variance."],
             "features": {
                 "jitter": float(round(pitch_jitter, 5)),
                 "cepstral_peak": float(round(cpp_val, 2)),
@@ -176,11 +173,10 @@ async def analyze_audio_forensics(file_upload, filename: str):
         return {
             "verdict": "Error",
             "confidence_score": 0.0,
-            "reasons": ["Analysis Failed"],
+            "reasons": ["Analysis Failed - File format or Timeout"],
             "features": {},
             "metadata": {}
         }
     finally:
-        # Ensure cleanup happens even if error occurs
-        if os.path.exists(temp_filename):
-            os.remove(temp_filename)
+        if os.path.exists(safe_filename):
+            os.remove(safe_filename)

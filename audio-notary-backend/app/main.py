@@ -4,10 +4,12 @@ from app.routes import auth_routes, analyze
 
 app = FastAPI()
 
-# --- CORS CONFIGURATION ---
+# --- THE NUCLEAR FIX ---
+# We use regex='.*' to allow ANY origin (Mobile, Vercel, Localhost)
+# This overrides the strict blocking that is failing on your phone.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows Vercel to connect!
+    allow_origin_regex=".*", 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
