@@ -8,6 +8,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// Import the page
+import Explain from './pages/Explain';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -28,10 +30,10 @@ function App() {
             <Navbar />
             <div className="flex-grow">
               <Routes>
-                {/* 1. Default Entry is now LOGIN */}
+                {/* 1. Default Entry - LOGIN */}
                 <Route path="/" element={<Login />} />
                 
-                {/* 2. Scanner is now at /scan and PROTECTED */}
+                {/* 2. Scanner - PROTECTED */}
                 <Route 
                   path="/scan" 
                   element={
@@ -41,7 +43,7 @@ function App() {
                   } 
                 />
                 
-                {/* 3. Dashboard is PROTECTED */}
+                {/* 3. Dashboard - PROTECTED */}
                 <Route 
                   path="/dashboard" 
                   element={
@@ -50,6 +52,9 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+
+                {/* 4. Explain Page - ADDED INSIDE ROUTES */}
+                <Route path="/explain" element={<Explain />} />
               </Routes>
             </div>
             <Footer />

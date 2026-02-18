@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaWaveSquare, FaBars, FaTimes, FaHome, FaHistory, FaSignOutAlt } from 'react-icons/fa';
+import { FaWaveSquare, FaBars, FaTimes, FaHome, FaHistory, FaSignOutAlt, FaBrain } from 'react-icons/fa'; // Added FaBrain
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -16,13 +16,10 @@ const Navbar = () => {
   };
 
   const handleLogoClick = () => {
-    // Check if we are already on the homepage
     if (window.location.pathname === '/scan') {
       window.location.reload();
-      return; // Exit the function so it doesn't try to navigate
+      return; 
     }
-  
-    // Your existing logic
     if (user) {
       navigate('/scan');
     } else {
@@ -31,7 +28,6 @@ const Navbar = () => {
   };
 
   const isLoginPage = location.pathname === '/';
-
   const navBtnStyle = "px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-neon-blue/50 transition-all duration-300 flex items-center gap-2 text-sm font-medium tracking-wide shadow-sm hover:shadow-[0_0_15px_rgba(0,243,255,0.15)]";
   const activeBtnStyle = "px-4 py-2 rounded-lg bg-neon-blue/10 border border-neon-blue/50 text-neon-blue flex items-center gap-2 text-sm font-bold shadow-[0_0_10px_rgba(0,243,255,0.2)]";
 
@@ -40,7 +36,6 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo */}
           <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer group">
             <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition shadow-[0_0_15px_rgba(168,85,247,0.3)]">
               <FaWaveSquare className="text-purple-500 text-2xl group-hover:scale-110 transition-transform" />
@@ -50,13 +45,19 @@ const Navbar = () => {
             </span>
           </div>
 
-          {/* Desktop Menu - ONLY shows if user is logged in */}
           <div className="hidden md:flex items-center gap-6">
             {user && (
                 <>
                 <Link to="/scan" className={location.pathname === '/scan' ? activeBtnStyle : navBtnStyle}>
                     <FaHome className="text-lg"/> Home
                 </Link>
+
+                {/* --- EXPLAIN WHY AI BUTTON START (Comment out below lines to disable) --- */}
+                <Link to="/explain" className={location.pathname === '/explain' ? activeBtnStyle : navBtnStyle}>
+                    <FaBrain className="text-lg"/> Explain Why
+                </Link>
+                {/* --- EXPLAIN WHY AI BUTTON END --- */}
+
                 <Link to="/dashboard" className={location.pathname === '/dashboard' ? activeBtnStyle : navBtnStyle}>
                     <FaHistory className="text-lg"/> History
                 </Link>
@@ -64,7 +65,7 @@ const Navbar = () => {
                 <div className="h-8 w-[1px] bg-white/10 mx-2"></div>
 
                 <div className="flex items-center gap-4">
-                  <div className="text-right hidden lg:block flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/20">
+                  <div className="text-rightlg:block flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/20">
                     <p className="text-left text-xs text-gray-400">User:</p>
                     <p className="text-sm font-bold text-neon-green flex items-center gap-1">
                       {user.username || "Guest"}
@@ -81,7 +82,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Hamburger - HIDDEN ON LOGIN PAGE */}
           {!isLoginPage && user && (
             <div className="md:hidden">
                 <button onClick={() => setIsOpen(!isOpen)} className="text-white text-2xl focus:outline-none p-2 rounded-lg hover:bg-white/10 transition">
@@ -92,13 +92,19 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Dropdown - ONLY shows if user is logged in and menu is open */}
       {!isLoginPage && isOpen && user && (
         <div className="md:hidden bg-black/80 backdrop-blur-2xl border-b border-white/10">
           <div className="px-4 pt-4 pb-6 space-y-3">
             <Link to="/scan" onClick={() => setIsOpen(false)} className={`block ${location.pathname === '/scan' ? 'bg-neon-blue/20 text-neon-blue' : 'bg-white/5 text-gray-200'} px-4 py-3 rounded-xl flex items-center gap-3 font-medium`}>
                 <FaHome/> Home
             </Link>
+            
+            {/* --- MOBILE EXPLAIN BUTTON START --- */}
+            <Link to="/explain" onClick={() => setIsOpen(false)} className={`block ${location.pathname === '/explain' ? 'bg-neon-blue/20 text-neon-blue' : 'bg-white/5 text-gray-200'} px-4 py-3 rounded-xl flex items-center gap-3 font-medium`}>
+                <FaBrain/> Explain Why
+            </Link>
+            {/* --- MOBILE EXPLAIN BUTTON END --- */}
+
             <Link to="/dashboard" onClick={() => setIsOpen(false)} className={`block ${location.pathname === '/dashboard' ? 'bg-neon-blue/20 text-neon-blue' : 'bg-white/5 text-gray-200'} px-4 py-3 rounded-xl flex items-center gap-3 font-medium`}>
                 <FaHistory/> History
             </Link>

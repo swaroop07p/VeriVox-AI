@@ -1,12 +1,14 @@
+from dotenv import load_dotenv 
+load_dotenv()                 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import auth_routes, analyze
+# CLEANED UP IMPORTS:
+from app.routes import auth_routes, analyze, explain 
 
 app = FastAPI()
 
 # --- THE NUCLEAR FIX ---
 # We use regex='.*' to allow ANY origin (Mobile, Vercel, Localhost)
-# This overrides the strict blocking that is failing on your phone.
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=".*", 
@@ -22,3 +24,4 @@ def read_root():
 # Register Routes
 app.include_router(auth_routes.router, prefix="/auth", tags=["Authentication"])
 app.include_router(analyze.router, prefix="/api", tags=["Analysis"])
+app.include_router(explain.router, prefix="/api/explain", tags=["AI Explanation"])

@@ -92,7 +92,7 @@ const ResultsView = ({ result }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         
         {/* 2. Biometric Graph */}
-        <div className="glass-panel p-6 rounded-2xl flex flex-col items-center">
+        <div className="glass-panel p-6 rounded-2xl flex flex-col items-center min-h-[400px]"> {/* <--- ADD min-h-[400px] HERE */}
             <h3 className="text-xl font-bold mb-6 text-neon-blue flex items-center gap-2 uppercase tracking-wide">
                 <FaUserSecret/> Biometric Analysis
             </h3>
