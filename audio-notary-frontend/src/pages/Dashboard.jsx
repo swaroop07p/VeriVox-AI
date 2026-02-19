@@ -87,7 +87,7 @@ const Dashboard = () => {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue mb-8 border-b border-white/10 pb-4 flex items-center gap-3">
-          <FaHistory className="text-neon-blue"/> Audit History Logs
+          <FaHistory size={26} className="text-neon-blue"/> Audit History Logs
         </h1>
 
         {loading ? (

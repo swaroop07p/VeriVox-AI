@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import { ScanContext } from '../context/ScanContext';
 import api from '../api';
-import { FaRobot, FaUser, FaPaperPlane, FaMicrochip, FaTrashAlt } from 'react-icons/fa';
+import { FaRobot, FaUser, FaPaperPlane, FaMicrochip, FaTrashAlt, FaUserAstronaut } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const Background = () => (
@@ -15,20 +15,30 @@ const Background = () => (
 );
 
 // --- GLOBAL MEMORY ---
-// Stores history AND the filename it belongs to
+// Stores history, filename, AND the login token to detect logouts securely
 let sessionChatData = {
     filename: null,
-    history: null
+    history: null,
+    token: null
 };
 
 const Explain = () => {
   const { scanResult } = useContext(ScanContext);
   
-  // Ref for the SCROLLABLE CONTAINER (not the message end)
+  // Ref for the SCROLLABLE CONTAINER
   const chatContainerRef = useRef(null);
   
-  // 1. INITIALIZE & CHECK FOR NEW FILE
+  // 1. INITIALIZE & CHECK FOR LOGOUTS / NEW FILES
   const [messages, setMessages] = useState(() => {
+    const currentToken = localStorage.getItem('token');
+
+    // SECURITY FIX: Detect Logout or Account Switch!
+    // If the token changed (user logged out), wipe the memory immediately.
+    if (sessionChatData.token && sessionChatData.token !== currentToken) {
+        sessionChatData.history = null;
+        sessionChatData.filename = null;
+    }
+
     // If we have a scan result, and it DOES NOT match the stored chat's file -> RESET
     if (scanResult && scanResult.filename && sessionChatData.filename !== scanResult.filename) {
         return [{ 
@@ -51,11 +61,12 @@ const Explain = () => {
   useEffect(() => {
     sessionChatData = {
         filename: scanResult?.filename || null,
-        history: messages
+        history: messages,
+        token: localStorage.getItem('token') // Save the active user token
     };
   }, [messages, scanResult]);
 
-  // 3. SMOOTH SCROLL (FIXED: Uses container scrollTop to prevent page jump)
+  // 3. SMOOTH SCROLL (Prevents page jump)
   useEffect(() => {
     if (chatContainerRef.current) {
         const { scrollHeight, clientHeight } = chatContainerRef.current;
@@ -107,11 +118,11 @@ const Explain = () => {
             <div className="flex-none p-4 border-b border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-neon-blue/20 text-neon-blue border border-neon-blue/50 shadow-[0_0_15px_rgba(0,243,255,0.3)]">
-                        <FaMicrochip size={18} />
+                        <FaUserAstronaut size={20} />
                     </div>
                     <div>
-                        <h2 className="text-lg md:text-xl font-bold text-white leading-tight">VeriVox Intelligence</h2>
-                        <p className="text-[10px] text-neon-green font-mono flex items-center gap-1">
+                        <h2 className="text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue leading-tight">VeriVox Intelligence</h2>
+                        <p className="text-[11px] text-neon-green font-mono flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse"></span>
                             ONLINE
                         </p>
@@ -122,15 +133,14 @@ const Explain = () => {
                     onClick={clearChat} 
                     className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors text-sm font-medium"
                 >
-                    <FaTrashAlt />
                     <span>Clear Chat</span>
                 </button>
             </div>
 
-            {/* Messages Area (NOW REF IS ON CONTAINER) */}
+            {/* Messages Area */}
             <div 
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent bg-black/20"
+                className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent bg-black/10"
             >
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -138,7 +148,7 @@ const Explain = () => {
                             ? 'bg-purple-600/20 border-purple-500/30 text-white rounded-br-none' 
                             : 'bg-[#1a1a2e]/90 border-white/10 text-gray-200 rounded-bl-none'}`}>
                             
-                            <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] font-bold uppercase tracking-wider">
+                            <div className="flex items-center gap-2 mb-1 opacity-50 text-[12px] font-bold uppercase tracking-wider">
                                 {msg.sender === 'user' ? <><FaUser/> You</> : <><FaRobot/> AI</>}
                             </div>
                             
@@ -177,7 +187,7 @@ const Explain = () => {
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className="px-4 md:px-6 py-3 bg-gradient-to-r from-neon-blue to-purple-600 text-white rounded-xl font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition disabled:opacity-50 flex items-center gap-2 shrink-0"
+                        className="px-4 md:px-6 py-3 bg-gradient-to-r from-purple-600 to-neon-blue text-white rounded-xl font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition disabled:opacity-50 flex items-center gap-2 shrink-0"
                     >
                         <FaPaperPlane /> 
                     </button>
