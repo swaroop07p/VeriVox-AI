@@ -11,14 +11,25 @@ from fastapi.concurrency import run_in_threadpool
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# --- OPTIMIZATION FOR HUGGING FACE (Fixes Error 137) ---
+# Limits CPU threads so the cloud server doesn't crash
+torch.set_num_threads(1) 
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Load Whisper once
-try:
-    whisper_model = whisper.load_model("tiny").to(device)
-except Exception as e:
-    logger.error(f"Whisper Load Failed: {e}")
-    whisper_model = None
+# We start with None. We will load it ONLY when needed (Lazy Loading)
+whisper_model = None 
+
+def get_whisper_model():
+    global whisper_model
+    if whisper_model is None:
+        try:
+            logger.info("Initializing Whisper model for the first time...")
+            whisper_model = whisper.load_model("tiny").to(device)
+            logger.info("Whisper model loaded successfully.")
+        except Exception as e:
+            logger.error(f"Whisper Load Failed: {e}")
+    return whisper_model
 
 # ------------------------------
 # BASELINE
@@ -114,11 +125,12 @@ def _analyze_sync(safe_filename):
     if energy_var > 0.02: stability_score -= 6
     if pitch_jitter < 0.002: stability_score += 6
 
-    # Whisper Analysis (Inlined for thread safety)
+    # Whisper Analysis (Now uses Lazy Loading)
     whisper_boost = 0
     try:
-        if whisper_model:
-            w_res = whisper_model.transcribe(safe_filename, fp16=False)
+        model = get_whisper_model()
+        if model:
+            w_res = model.transcribe(safe_filename, fp16=False)
             if "segments" in w_res and len(w_res["segments"]) >= 2:
                 log_probs = [seg["avg_logprob"] for seg in w_res["segments"]]
                 prob_var = np.std(log_probs)
@@ -161,7 +173,7 @@ def _analyze_sync(safe_filename):
     elif verdict == "AI/Synthetic" and normalized_human >= 50:
         normalized_human = 49.9; normalized_fake = 50.1
 
-    # --- DYNAMIC REASONS GENERATION (Fixed) ---
+    # --- DYNAMIC REASONS GENERATION ---
     reasons = []
 
     # 1. AI Flags
@@ -180,7 +192,7 @@ def _analyze_sync(safe_filename):
             reasons.append("High temporal variance confirms biological speech patterns.")
         if energy_var > 0.015:
             reasons.append("Natural breath/volume modulation detected.")
-        if not reasons: # If no specific flags, add generic human confirmation
+        if not reasons: 
             reasons.append("Bio-metric variability falls within normal human parameters.")
             reasons.append("Harmonic integrity matches organic vocal cords.")
 
@@ -193,7 +205,7 @@ def _analyze_sync(safe_filename):
         "verdict": verdict,
         "confidence_score": float(round(normalized_fake, 2)),
         "human_alignment_score": float(round(normalized_human, 2)),
-        "reasons": reasons[:3], # Return top 3 reasons
+        "reasons": reasons[:3], 
         "features": {
             "jitter": float(round(pitch_jitter, 5)),
             "cepstral_peak": float(round(cpp_val, 2)),
@@ -217,7 +229,6 @@ async def analyze_audio_forensics(file_upload, filename: str):
         with open(safe_filename, "wb") as f:
             f.write(content)
 
-        # RUN IN THREADPOOL to prevent server freeze
         return await run_in_threadpool(_analyze_sync, safe_filename)
 
     except Exception as e:
