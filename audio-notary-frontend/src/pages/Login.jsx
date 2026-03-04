@@ -119,7 +119,7 @@ const Login = () => {
              <div className="w-full border-t border-white/20"></div>
            </div>
            <div className="relative flex justify-center text-xs">
-             <span className="bg-[#111] px-2 text-gray-400 rounded">OR</span>
+             <span className="bg-[#141313] px-2 text-gray-400 rounded">OR</span> {/* bg-[#111] changed to bg-[#141313] */}
            </div>
         </div>
 

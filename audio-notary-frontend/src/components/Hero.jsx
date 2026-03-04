@@ -9,7 +9,8 @@ const Hero = () => {
         transition={{ duration: 0.8 }}
       >
         <h1 className="text-5xl md:text-7xl font-black text-white mb-2 tracking-tighter">
-          AUDIO <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue">NOTARY</span>
+           {/* padding right added for Y in notary */}
+          AUDIO <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-neon-blue pr-1">NOTARY</span>
         </h1>
       </motion.div>
       

@@ -66,7 +66,7 @@ const Navbar = () => {
 
                 <div className="flex items-center gap-4">
                   <div className="text-rightlg:block flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/20">
-                    <p className="text-left text-xs text-gray-400">User:</p>
+                    <p className="text-left text-[14px] text-gray-400">User:</p>
                     <p className="text-sm font-bold text-neon-green flex items-center gap-1">
                       {user.username || "Guest"}
                     </p>
