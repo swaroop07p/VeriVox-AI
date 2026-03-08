@@ -148,7 +148,7 @@ const Explain = () => {
                             ? 'bg-purple-600/20 border-purple-500/30 text-white rounded-br-none' 
                             : 'bg-[#1a1a2e]/90 border-white/10 text-gray-200 rounded-bl-none'}`}>
                             
-                            <div className="flex items-center gap-2 mb-1 opacity-50 text-[15px] font-bold uppercase tracking-wider"> {/* text-[12px] changed to text-[15px] */}
+                            <div className="flex items-center gap-2 mb-1 opacity-50 text-[13px] font-bold uppercase tracking-wider"> {/* text-[12px] changed to text-[15px] */}
                                 {msg.sender === 'user' ? <><FaUser/> You</> : <><FaRobot/> AI</>}
                             </div>
                             

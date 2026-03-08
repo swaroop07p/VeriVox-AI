@@ -137,7 +137,8 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-4">
             {history
-              .filter((item) => { // filtering logic for the history section
+              .filter((item) => {
+                // filtering logic for the history section
                 if (filter === "All") return true;
                 const itemType =
                   item.verdict === "AI/Synthetic"
@@ -176,8 +177,22 @@ const Dashboard = () => {
                         >
                           {item.filename}
                         </h3>
-                        <p className="text-xs text-gray-400">
+                        {/* <p className="text-xs text-gray-400">
                           {new Date(item.timestamp).toLocaleString()}
+                        </p> */}
+                        <p className="text-xs text-gray-400">
+                          {new Date(
+                            new Date(item.timestamp).getTime() +
+                              5.5 * 60 * 60 * 1000,
+                          ).toLocaleString("en-IN", {
+                            timeZone: "Asia/Kolkata",
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
                         </p>
                       </div>
                     </div>
