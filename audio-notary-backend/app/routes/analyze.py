@@ -89,12 +89,26 @@ async def download_report(report_id: str, current_user: dict = Depends(get_curre
 
         # Generate PDF
         pdf_buffer = generate_pdf_report(report)
+
+        #-------------------pdf download error resolved--------------------
+        # Clean the filename: replace special dashes with simple hyphens 
+        # and ensure it's converted to a safe string format
+        safe_filename = report['filename'].replace('\u2013', '-').replace('\u2014', '-')
         
         return Response(
             content=pdf_buffer.getvalue(),
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=Forensic_Report_{report['filename']}.pdf"}
+            headers={
+                "Content-Disposition": f'attachment; filename="Forensic_Report_{safe_filename}.pdf"'
+            }
         )
+        #-------------------pdf download error resolved--------------------
+
+        # return Response(
+        #     content=pdf_buffer.getvalue(),
+        #     media_type="application/pdf",
+        #     headers={"Content-Disposition": f"attachment; filename=Forensic_Report_{report['filename']}.pdf"}
+        # )
 
     except Exception as e:
         print(f"Download Error: {e}")
