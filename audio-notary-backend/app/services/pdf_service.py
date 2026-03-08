@@ -7,6 +7,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from datetime import datetime, timedelta
 
 def generate_pdf_report(analysis_data):
     buffer = BytesIO()
@@ -17,12 +18,34 @@ def generate_pdf_report(analysis_data):
     # Header
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], alignment=1, fontSize=24, spaceAfter=20, textColor=colors.darkblue)
     elements.append(Paragraph("DIGITAL AUDIO NOTARY AUDIT", title_style))
+
+    # filename = analysis_data.get('filename', 'Unknown')
+    # timestamp = analysis_data.get('timestamp', 'Unknown')
+    # elements.append(Paragraph(f"File: {filename}", styles['Normal']))
+    # elements.append(Paragraph(f"Date: {timestamp}", styles['Normal']))
+    # elements.append(Spacer(1, 20))
     
+    # -----------Time converted to IST----------------
     filename = analysis_data.get('filename', 'Unknown')
-    timestamp = analysis_data.get('timestamp', 'Unknown')
+    timestamp = analysis_data.get('timestamp', None)
+
+    # Convert UTC timestamp to IST
+    if timestamp:
+        try:
+            if isinstance(timestamp, str):
+                timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+
+            ist_time = timestamp + timedelta(hours=5, minutes=30)
+            formatted_time = ist_time.strftime("%d %b %Y, %I:%M:%S %p")
+        except:
+            formatted_time = str(timestamp)
+    else:
+        formatted_time = "Unknown"
+
     elements.append(Paragraph(f"File: {filename}", styles['Normal']))
-    elements.append(Paragraph(f"Date: {timestamp}", styles['Normal']))
+    elements.append(Paragraph(f"Date: {formatted_time}", styles['Normal']))
     elements.append(Spacer(1, 20))
+    # ---------------Time converted to IST---------------
 
     # --- VERDICT LOGIC ---
     verdict = analysis_data.get("verdict", "Unknown")
