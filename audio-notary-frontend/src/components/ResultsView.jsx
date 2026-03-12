@@ -37,7 +37,7 @@ const ResultsView = ({ result }) => {
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="relative z-10 bg-blue-900/90 border border-white/20 p-4 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md">
+        <div className="relative z-10 bg-gradient-to-r from-purple-800 to-blue-500 border border-white/20 p-4 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <p className="text-white font-bold mb-1">{payload[0].name}</p>
           <p className="text-gray-300">
             Confidence: <span style={{ color: payload[0].payload.fill, fontWeight: 'bold' }}>
@@ -113,7 +113,8 @@ const ResultsView = ({ result }) => {
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
-                        <Tooltip content={<CustomTooltip />} />
+                        <Tooltip content={<CustomTooltip />}
+                        offset={90} />
                     </PieChart>
                 </ResponsiveContainer>
                 

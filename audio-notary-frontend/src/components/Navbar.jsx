@@ -66,14 +66,14 @@ const Navbar = () => {
 
                 <div className="flex items-center gap-4">
                   <div className="text-rightlg:block flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/20">
-                    <p className="text-left text-[14px] text-gray-400">User:</p>
+                    <p className="text-left text-[14px] text-gray-400 font-bold">User:</p>
                     <p className="text-sm font-bold text-neon-green flex items-center gap-1">
                       {user.username || "Guest"}
                     </p>
                   </div>
                   <button 
                     onClick={handleLogout}
-                    className="px-5 py-2 text-sm rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500 transition flex items-center gap-2 shadow-sm hover:shadow-red-900/20"
+                    className="px-5 py-2 text-sm rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500 transition flex items-center gap-2 shadow-sm hover:shadow-red-900/20 font-bold"
                   >
                     <FaSignOutAlt /> Logout
                   </button>

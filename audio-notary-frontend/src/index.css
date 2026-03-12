@@ -15,6 +15,11 @@ body {
   overflow-x: hidden;
 }
 
+/* For the pie chart result div z index */
+/* .recharts-tooltip-wrapper {
+  z-index: 100 !important;
+} */
+
 /* --- SCROLLBAR --- */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }
