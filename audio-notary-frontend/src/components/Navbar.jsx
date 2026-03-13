@@ -1,7 +1,8 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaWaveSquare, FaBars, FaTimes, FaHome, FaHistory, FaSignOutAlt, FaBrain } from 'react-icons/fa'; // Added FaBrain
+import { FaWaveSquare} from 'react-icons/fa'; // Added FaBrain
+import {FaBars, FaTimes, FaHome, FaHistory, FaSignOutAlt, FaBrain, FaUserFriends } from 'react-icons/fa';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -62,6 +63,11 @@ const Navbar = () => {
                     <FaHistory className="text-lg"/> History
                 </Link>
 
+                {/* Inside your rendering logic, put this under the Home link: */}
+                <Link to="/compare" onClick={() => setIsOpen(false)} className={location.pathname === '/compare' ? activeBtnStyle : navBtnStyle}>
+                    <FaUserFriends className="text-lg"/> Compare Voices
+                </Link>
+
                 <div className="h-8 w-[1px] bg-white/10 mx-2"></div>
 
                 <div className="flex items-center gap-4">
@@ -107,6 +113,11 @@ const Navbar = () => {
 
             <Link to="/dashboard" onClick={() => setIsOpen(false)} className={`block ${location.pathname === '/dashboard' ? 'bg-neon-blue/20 text-neon-blue' : 'bg-white/5 text-gray-200'} px-4 py-3 rounded-xl flex items-center gap-3 font-medium`}>
                 <FaHistory/> History
+            </Link>
+
+            {/* Inside your rendering logic, put this under the Home link: */}
+            <Link to="/compare" onClick={() => setIsOpen(false)} className={location.pathname === '/compare' ? activeBtnStyle : navBtnStyle}>
+                <FaUserFriends className="text-lg"/> Compare Voices
             </Link>
             
             <div className="border-t border-white/10 my-2"></div>

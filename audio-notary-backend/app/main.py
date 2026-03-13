@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # CLEANED UP IMPORTS:
 from app.routes import auth_routes, analyze, explain 
+# Add this import at the top
+from app.routes import auth_routes, analyze, explain, compare
 
 app = FastAPI()
 
@@ -25,3 +27,5 @@ def read_root():
 app.include_router(auth_routes.router, prefix="/auth", tags=["Authentication"])
 app.include_router(analyze.router, prefix="/api", tags=["Analysis"])
 app.include_router(explain.router, prefix="/api/explain", tags=["AI Explanation"])
+# Add this at the bottom with your other routes
+app.include_router(compare.router, prefix="/api", tags=["Comparison"])

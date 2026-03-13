@@ -15,6 +15,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // Import the page
 import Explain from "./pages/Explain";
+import Compare from './pages/Compare'; // Add this at the top
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -58,9 +59,27 @@ function App() {
                   }
                 />
 
-                {/* 4. Explain Page - ADDED INSIDE ROUTES */}
-                <Route path="/explain" element={<Explain />} />
+                {/* 4. Compare Page - PROTECTED */}
+                <Route 
+                  path="/compare" 
+                  element={
+                    <ProtectedRoute>
+                      <Compare />
+                    </ProtectedRoute>
+                  } 
+                />
 
+                {/* 5. Explain Page - PROTECTED */}
+                <Route 
+                  path="/explain" 
+                  element={
+                    <ProtectedRoute>
+                      <Explain />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                {/* 404 Page */}
                 <Route
                   path="*"
                   element={
@@ -78,12 +97,11 @@ function App() {
                           Lost in Space?
                         </h2>
                         <p className="text-gray-400 mb-10 max-w-sm md:max-w-md text-sm md:text-lg">
-                          We couldn't find the page you're looking for. It might
-                          have been moved or deleted.
+                          We couldn't find the page you're looking for.
                         </p>
                         <a
                           href="/scan"
-                          className="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-black transition-all duration-200 bg-white font-pj rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 hover:bg-gray-200 active:scale-95"
+                          className="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-black transition-all duration-200 bg-white font-pj rounded-full hover:bg-gray-200 active:scale-95"
                         >
                           Back to Home
                         </a>
@@ -91,7 +109,6 @@ function App() {
                     </div>
                   }
                 />
-                
               </Routes>
             </div>
             <Footer />
