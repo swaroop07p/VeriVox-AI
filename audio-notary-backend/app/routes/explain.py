@@ -75,9 +75,10 @@ async def chat_with_forensic_expert(request: ChatRequest):
         
         INSTRUCTIONS:
         1. Answer in **HTML format** (use <b> for bold, <ul><li> for lists, <br> for breaks). 
-        2. Do NOT use Markdown (no ** or #).
-        3. KEEP IT CONCISE: Maximum 3-7 lines. 
-        4. Only provide long detailed explanations if the user explicitly asks for "details" or "elaborate".
+        2. Do NOT use Markdown. Do NOT wrap the answer in code blocks (```).
+        3. Return ONLY the raw HTML string.
+        4. KEEP IT CONCISE: Maximum 3-7 lines. 
+        5. Only provide long detailed explanations if the user explicitly asks for "details" or "elaborate".
         
         EXPERT ANSWER:"""
 
