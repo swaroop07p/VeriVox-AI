@@ -7,7 +7,7 @@ import axios from 'axios';
 // Do NOT put a slash '/' at the end.
 
 // Logic: If the browser window is running on localhost, use the local URL. Otherwise, use Hugging Face.
-const HF_URL = "https://swaroop07p-audio-notary-backend.hf.space";
+const HF_URL = "https://swaroop07p-audio-verivox.hf.space";
 const LOCAL_URL = "http://127.0.0.1:8000";
 
 const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
